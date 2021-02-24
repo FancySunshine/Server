@@ -61,6 +61,7 @@ client.on('connect', function () {  // MQTT 서버에 연결되었을 때
   client.subscribe('Reservation/add');
   client.subscribe('Curtain/ctr');
   client.subscribe('Reservation/list');
+  client.subscribe('Reservation/update');
 
 });
 
@@ -69,12 +70,6 @@ var joba = schedule.scheduleJob('30 * * * * *', function(){ //1초마다 한 번
   //client.publish('test', "Testing Message");
   });
 
-var jobb = schedule.scheduleJob('15 * * * * *', function(){ //1초마다 한 번 처리
-    console.log("Job B");
-});
-var jobc = schedule.scheduleJob('45 * * * * *', function(){ //1초마다 한 번 처리
-  console.log("Job C");
-});
 
 
 
@@ -82,7 +77,7 @@ client.on('message', function (topic, message) { // Node.js에서 수신된 데�
   if(topic == 'client/connect'){  // 안드로이드 clinet가 연결되었을 때
     console.log(message.toString());
     // 예약 리스트 송신
-    connection.query('SELECT `Name`, `StartTime`, `ctr`, `dayofweek`, `chk_state` FROM `control`', function(err, rows) {
+    connection.query('SELECT * FROM `control`', function(err, rows) {
       if(err) throw err;
       console.log('Success!');
       client.publish('Reservation/list', JSON.stringify(rows));
@@ -102,7 +97,9 @@ client.on('message', function (topic, message) { // Node.js에서 수신된 데�
     */
     // DB에 데이터 삽입 
     connection.query('INSERT INTO `control`(`Name`, `StartTime`, `dayofweek`, `ctr`, `Memo`) VALUES("'
-    + data[0] + '", "' + data[1] + '", "' + data[2] + '", ' + data[3] + ', "' + data[4] + '");', function(err, rows) {
+    + data[0] + '", "' + data[1] + '", "' + data[2] + '", ' + data[3] + ', "' + data[4] + '") ON DUPLICATE KEY '
+     + 'UPDATE `StartTime` = "' + data[1] + '", `dayofweek` = "' + data[2] + '", `ctr` = "' + data[3] + '", `Memo` = "'
+       + data[4] +'";', function(err, rows) {
       if(err){
         client.publish('Reservaion/add/fail', "");
       }else{
@@ -117,9 +114,12 @@ else if(topic == 'Curtain/ctr'){
   // 안드로이드 앱에서 커튼 단계 제어 버튼을 눌렀을 때
       console.log(message.toString());
     }
-else if(topic == 'Reservation/list'){
-  // 안드로이드 앱에서 커튼 단계 제어 버튼을 눌렀을 때
-      console.log(message.toString());
+else if(topic == 'client/refresh'){
+      connection.query('SELECT * FROM `control`', function(err, rows) {
+        if(err) throw err;
+        console.log('Success!');
+        client.publish('Reservation/ref', JSON.stringify(rows));
+      });
     }
 });
 //data test
@@ -221,7 +221,6 @@ function day_parser(sql_day){
 http.listen(3000, function(){
    console.log("listening on * 3000");
    console.log(res_checker());
-   console.log(jobc);
 });
 
 
