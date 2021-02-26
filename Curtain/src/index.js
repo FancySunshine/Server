@@ -59,15 +59,24 @@ var client = mqtt.connect("mqtt://localhost");  // Client 생성
 client.on('connect', function () {  // MQTT 서버에 연결되었을 때
   client.subscribe('client/connect');
   client.subscribe('Reservation/add');
+  client.subscribe('Reservation/del');
   client.subscribe('Curtain/ctr');
   client.subscribe('Reservation/list');
   client.subscribe('Reservation/update');
+  client.subscribe('Curtain/step/get');
 
 });
-
+var ab = 0
 /// job scheduler
-var joba = schedule.scheduleJob('30 * * * * *', function(){ //1초마다 한 번 처리
-  //client.publish('test', "Testing Message");
+var joba = schedule.scheduleJob('*//5 * * * * *', function(){
+  if(ab == 0){
+    client.publish('test', ab.toString());
+    ab = ab + 1;
+  }
+  else{
+    client.publish('test', ab.toString());
+    ab = ab - 1;
+  }
   });
 
 
@@ -110,18 +119,21 @@ client.on('message', function (topic, message) { // Node.js에서 수신된 데�
     });
     
   }
-else if(topic == 'Curtain/ctr'){
-  // 안드로이드 앱에서 커튼 단계 제어 버튼을 눌렀을 때
-      console.log(message.toString());
-    }
-else if(topic == 'client/refresh'){
-      connection.query('SELECT * FROM `control`', function(err, rows) {
-        if(err) throw err;
-        console.log('Success!');
-        client.publish('Reservation/ref', JSON.stringify(rows));
-      });
-    }
-});
+  else if(topic == 'Reservation/del'){
+    connection.query('DELETE FROM `control` WHERE `Name` IN (' + message.toString() + ')', function(err, rows) {
+      if(err) throw err;
+      res_checker();
+    });
+  }
+
+  else if(topic == 'Curtain/ctr'){
+    // 안드로이드 앱에서 커튼 단계 제어 버튼을 눌렀을 때
+        console.log(message.toString());
+      }
+  else if(topic == 'Curtain/step/get'){
+        client.publish('test', ab.toString());
+      }
+  });
 //data test
 /*
 function getTimeStamp() {
