@@ -6,6 +6,7 @@ var mqtt = require("mqtt");
 var mysql = require("mysql");
 var dbconfig = require("./database.js");
 var connection = mysql.createConnection(dbconfig);
+const _ = require('lodash');
 
 
 var app = express();
@@ -62,22 +63,10 @@ client.on('connect', function () {  // MQTT 서버에 연결되었을 때
   client.subscribe('Reservation/del');
   client.subscribe('Curtain/ctr');
   client.subscribe('Reservation/list');
-  client.subscribe('Reservation/update');
-  client.subscribe('Curtain/step/get');
+  client.subscribe('Reservation/check');
 
 });
-var ab = 0
-/// job scheduler
-var joba = schedule.scheduleJob('*//5 * * * * *', function(){
-  if(ab == 0){
-    client.publish('test', ab.toString());
-    ab = ab + 1;
-  }
-  else{
-    client.publish('test', ab.toString());
-    ab = ab - 1;
-  }
-  });
+
 
 
 
@@ -121,19 +110,32 @@ client.on('message', function (topic, message) { // Node.js에서 수신된 데�
   }
   else if(topic == 'Reservation/del'){
     connection.query('DELETE FROM `control` WHERE `Name` IN (' + message.toString() + ')', function(err, rows) {
-      if(err) throw err;
-      res_checker();
+      if(err){
+        client.publish('Reservation/del/fail', "");
+      }
+      else{
+        client.publish('Reservation/del/success', "");
+        res_checker();
+      }
     });
   }
 
   else if(topic == 'Curtain/ctr'){
     // 안드로이드 앱에서 커튼 단계 제어 버튼을 눌렀을 때
         console.log(message.toString());
-      }
-  else if(topic == 'Curtain/step/get'){
-        client.publish('test', ab.toString());
-      }
-  });
+  }
+  else if(topic == 'Reservation/check'){
+    // 예약 활성화/비활성화
+    var chk = message.toString().split('|');
+    connection.query('UPDATE control SET chk_state = ' + chk[1] + ' WHERE NAME = "' + chk[0] +'";', function(err, rows) {
+      if(err) throw err;
+      res_checker();
+      console.log('Success!');
+    });
+
+    console.log(chk);
+  }
+});
 //data test
 /*
 function getTimeStamp() {
@@ -178,18 +180,30 @@ function leadingZeros(n, digits) {
 
 
 function res_checker(){
-  connection.query('SELECT `StartTime`, `ctr`, `dayofweek` FROM `control`', function(err, rows) { //WHERE `chk_state` = 1
+  connection.query('SELECT `StartTime`, `ctr`, `dayofweek` FROM `control` WHERE chk_state = 1', function(err, rows) { //WHERE `chk_state` = 1
     if(err) throw err;
+    // 예약 리스트 비우기
+    res_StartHours = [];
+    res_StartMinutes = [];
+    res_Days = [];
+    res_Controls= [];
+    res = [res_StartHours, res_StartMinutes, res_Days, res_Controls];
+
+    //모든 예약 취소
+    var jobNames = _.keys(schedule.scheduledJobs);
+    for(let name of jobNames) schedule.cancelJob(name);
+
+    console.log("afdafafad" + schedules);
+    schedules = [];
     var data = JSON.parse(JSON.stringify(rows));
-    var ddd = [];
+
     for(var i = 0; i < data.length; i++){
-      res_StartHours[i] = data[i].StartTime.split(':')[0];
-      res_StartMinutes[i] = data[i].StartTime.split(':')[1];
+      res_StartHours.push(data[i].StartTime.split(':')[0]);
+      res_StartMinutes.push(data[i].StartTime.split(':')[1]);
       //res_StartTimes[i] = data[i].StartTime;
-      res_Days[i] = day_parser(data[i].dayofweek);
-      res_Controls[i] = data[i].ctr;
-      var a = '0 ' + res_StartMinutes[i] + ' ' + res_StartHours[i] +  ' * * ' + res_Days[i]
-      console.log(a)
+      res_Days.push(day_parser(data[i].dayofweek));
+      res_Controls.push(data[i].ctr);
+    
 
       var rule = new schedule.RecurrenceRule();
       rule.dayOfWeek = [res_Days[i].split(', ').map(Number)];
@@ -199,13 +213,11 @@ function res_checker(){
       let ctr = res_Controls[i];
 
       console.log(res_Days[i].split(', ').map(Number));
-      schedules.push(schedule.scheduleJob(rule, function(){ //시간마다
-        client.publish('Reservaion/list', ctr.toString());
+      schedules.push(schedule.scheduleJob(String(i), rule, function(){ //시간마다
+        client.publish('asdft', ctr.toString());
       }));
     
     }
-    schedules = ddd;
-    console.log(ddd);
     console.log(res);
     console.log(schedules);
 
