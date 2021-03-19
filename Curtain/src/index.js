@@ -6,8 +6,11 @@ var mqtt = require("mqtt");
 var mysql = require("mysql");
 var dbconfig = require("./database.js");
 var connection = mysql.createConnection(dbconfig);
-const _ = require('lodash');
+var spawn = require("child_process").spawn;
 
+const _ = require('lodash');
+// python 파일 실행 라이브러리 
+const result_python = spawn('python', ['main.py', 45.3]);
 
 var app = express();
 var http = require("http").createServer(app);
@@ -19,7 +22,14 @@ var res_Controls= [];
 var res = [res_StartHours, res_StartMinutes, res_Days, res_Controls];
 var schedules = [];
 
+// python shell 설정 자동 실행 설정 
+result_python.stdout.on('data', function(data) {
+  console.log(data.toString());
+});
 
+result_python.stderr.on('data', function(data) {
+  console.log(data.toString());
+});
 
 // mosca mqtt 서버 설정
 var settings = {
