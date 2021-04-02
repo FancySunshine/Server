@@ -6,11 +6,12 @@ var mqtt = require("mqtt");
 var mysql = require("mysql");
 var dbconfig = require("./database.js");
 var connection = mysql.createConnection(dbconfig);
-var spawn = require("child_process").spawn;
+
+// python 파일 실행 라이브러리 
+const spawn = require('child_process').spawn;
+const result = spawn('python' , ['main.py']);
 
 const _ = require('lodash');
-// python 파일 실행 라이브러리 
-//const result_python = spawn('python', ['main.py', 45.3]);
 
 var app = express();
 var http = require("http").createServer(app);
@@ -21,17 +22,6 @@ var res_Days = [];
 var res_Controls= [];
 var res = [res_StartHours, res_StartMinutes, res_Days, res_Controls];
 var schedules = [];
-
-// python shell 설정 자동 실행 설정 
-/*
-result_python.stdout.on('data', function(data) {
-  console.log(data.toString());
-});
-
-result_python.stderr.on('data', function(data) {
-  console.log(data.toString());
-});
-*/
 
 // mosca mqtt 서버 설정
 var settings = {
@@ -79,7 +69,13 @@ client.on('connect', function () {  // MQTT 서버에 연결되었을 때
   client.subscribe('Database/bright/save');
 });
 
-
+// python 스크립트 실행 예정 
+result.stdout.on('data', function(data) { 
+  console.log(data.toString()); }); 
+  // 4. 에러 발생 시, stderr의 'data'이벤트리스너로 
+  //실행결과를 받는다. 
+result.stderr.on('data', function(data) { 
+  console.log(data.toString()); });
 
 
 
@@ -148,7 +144,7 @@ client.on('message', function (topic, message) { // Node.js에서 수신된 데�
     console.log(chk);
   }
   else if(topic == 'Database/bright/save'){
-    // 예약 활성화/비활성화
+    // 새로운 데이터베이스 활성화 했음 
     var data = message.toString().split('|');
     connection.query('INSERT INTO brightness VALUES("' + data[0] + '", ' + data[1] + ', ' + data[2] + ') ;', function(err, rows) {
       if(err) throw err;
