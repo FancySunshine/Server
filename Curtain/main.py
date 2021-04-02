@@ -1,8 +1,7 @@
 import pymysql
 import time
-import schedule
 import sys
-
+import threading
 """
 각 조명에 대한 평균값 구하기 (알고리즘 설계)
 """
@@ -24,40 +23,39 @@ def my_data_insert(i):
     return sum([arr[i] for arr in res]) / len(res)
 
 
-class AverageLight:
+class AverageLight():
     def __init__(self, hope_light):
         self.inside_light = my_data_insert(1)
         self.outside_light = my_data_insert(2)
         self.hope_list = hope_light
-
+    
     def led_function(self):
-        while True:
+        try:
             if self.inside_light == self.hope_list:
-                time.sleep(5)
                 print("LED right")
             else:
                 print("LED trun off!")
+        except:
+            print("ㄴㄴ led")
+       
 
-    def main(self):
+    def control_function(self):
         print(f"linear average --> {self.inside_light}")
         print(f"outline average --> {self.outside_light}")
-
         while True:
-            if self.inside_light < self.outside_light:
-                time.sleep(5)
-                self.led_function()
-            else:
-                if self.inside_light == self.hope_list:
-                    print("OK")
-                elif self.hope_list > self.inside_light:
-                    print("curtain up")
+            try:
+                if self.inside_light < self.outside_light:
+                    self.led_function()
                 else:
-                    print("curtain down")
+                    if self.inside_light == self.hope_list:
+                        print("OK")
+                    elif self.hope_list > self.inside_light:
+                        print("curtain up")
+                    else:
+                        print("curtain down")
+            except:
+                print("ㄴㄴ")
 
 
 if __name__ == "__main__":
-    schedule.every(3).seconds.do(AverageLight(sys.argv[1]).main())
-
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
+    threading.Timer(5, AverageLight(sys.argv[1]).led_function()).start()
