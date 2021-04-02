@@ -34,6 +34,7 @@ class AverageLight():
         print(f"linear average --> {self.inside_light}")
         print(f"outline average --> {self.outside_light}")
         while True:
+            time.sleep(2)
             try:
                 if self.inside_light < self.outside_light:
                     if self.inside_light == self.hope_list:
