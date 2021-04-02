@@ -13,7 +13,7 @@ def my_data_insert(i):
                            password='0000', db='curtain', charset='utf8')
     cursor = conn.cursor()
 
-    sql = "SELECT * FROM auto"
+    sql = "SELECT * FROM brightness"
 
     cursor.execute(sql)
     res = cursor.fetchall()
@@ -29,15 +29,6 @@ class AverageLight():
         self.outside_light = my_data_insert(2)
         self.hope_list = hope_light
     
-    def led_function(self):
-        try:
-            if self.inside_light == self.hope_list:
-                print("LED right")
-            else:
-                print("LED trun off!")
-        except:
-            print("ㄴㄴ led")
-       
 
     def control_function(self):
         print(f"linear average --> {self.inside_light}")
@@ -45,7 +36,10 @@ class AverageLight():
         while True:
             try:
                 if self.inside_light < self.outside_light:
-                    self.led_function()
+                    if self.inside_light == self.hope_list:
+                        print("LED right")
+                    else:
+                        print("LED trun off!")
                 else:
                     if self.inside_light == self.hope_list:
                         print("OK")
@@ -58,4 +52,4 @@ class AverageLight():
 
 
 if __name__ == "__main__":
-    threading.Timer(5, AverageLight(sys.argv[1]).led_function()).start()
+    threading.Timer(5000, AverageLight(sys.argv[1]).control_function()).start()
