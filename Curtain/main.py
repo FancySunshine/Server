@@ -35,7 +35,7 @@ class AverageLight():
     def __init__(self):
         self.inside_light = in_average
         self.outside_light = out_average
-        self.hope_list = luxstandard[sys.argv[1]]
+        self.hope_list = lux_standard[int(sys.argv[1])]
     
 
     def control_function(self):
