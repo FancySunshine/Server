@@ -17,6 +17,7 @@ cursor = conn.cursor()
 
 sql = "SELECT * FROM brightness"
 
+
 cursor.execute(sql)
 res = cursor.fetchall()
 conn.commit()
@@ -28,12 +29,13 @@ outside = [data[2] for data in res]
 in_average = np.array(inside).mean()
 out_average = np.array(outside).mean()
 
+lux_standard = [0, 100, 200, 300, 400, 500]
 
 class AverageLight():
-    def __init__(self, hope_light):
+    def __init__(self):
         self.inside_light = in_average
         self.outside_light = out_average
-        self.hope_list = hope_light
+        self.hope_list = luxstandard[sys.argv[1]]
     
 
     def control_function(self):
@@ -42,7 +44,7 @@ class AverageLight():
 
         if self.inside_light < self.outside_light:
             if self.inside_light == self.hope_list:
-                print("LED right")
+                print("LED|0.999")
             else:
                 print("LED trun off!")
         else:
@@ -54,4 +56,4 @@ class AverageLight():
                 print("curtain down")
 
 
-AverageLight(30).control_function()
+AverageLight().control_function()

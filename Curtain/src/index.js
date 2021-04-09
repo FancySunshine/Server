@@ -154,20 +154,21 @@ client.on('message', function (topic, message) { // Node.js에서 수신된 데�
   }
   else if(topic == 'Auto/control'){
     console.log(message.toString());
-
     // 자동 제어 파이썬 실행
 
     // 일정 시각마다 실행 스케줄 on
-    if(message.toString() == '1'){
+    if(message.toString() != '0'){
       let autoSchedule = schedule.scheduleJob('auto', '*/5 * * * * *', function() {
-        const result = spawn('python' , ['main.py']);
+        const result = spawn('python' , ['main.py', message.toString()]);
         result.stdout.on('data', function(data) { 
         console.log(data.toString());
+        clinet.publish("Auto/result", data.toString())
         }); 
           // 4. 에러 발생 시, stderr의 'data'이벤트리스너로 
           //실행결과를 받는다. 
         result.stderr.on('data', function(data) { 
           console.log(data.toString()); });
+          clinet.publish("Auto/result", data.toString())
       });
     }
     else{
