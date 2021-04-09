@@ -9,7 +9,6 @@ var connection = mysql.createConnection(dbconfig);
 
 // python 파일 실행 라이브러리 
 const spawn = require('child_process').spawn;
-const result = spawn('python' , ['main.py']);
 
 const _ = require('lodash');
 
@@ -68,6 +67,7 @@ client.on('connect', function () {  // MQTT 서버에 연결되었을 때
   client.subscribe('Reservation/check');
   client.subscribe('Database/bright/save');
   client.subscribe('Auto/control');
+  client.subscribe('Luxdata/avg');
 });
 
 // MQTT Architecture
@@ -80,6 +80,13 @@ client.on('message', function (topic, message) { // Node.js에서 수신된 데�
       console.log('Success!');
       client.publish('Reservation/list', JSON.stringify(rows));
     });
+     ////조도 in/out/avg 데이터 송신
+     connection.query('SELECT * FROM `brightness`', function(err, rows) {
+      if(err) throw err;
+      console.log(JSON.stringify(rows));
+      client.publish('Luxdata/avg2', JSON.stringify(rows));
+    });    
+    
   }
   else if(topic == 'Reservation/add'){
     // DB에 예약 추가
@@ -146,6 +153,7 @@ client.on('message', function (topic, message) { // Node.js에서 수신된 데�
     console.log(chk);
   }
   else if(topic == 'Auto/control'){
+    const result = spawn('python' , ['main.py']);
     result.stdout.on('data', function(data) { 
       console.log(data.toString()); }); 
       // 4. 에러 발생 시, stderr의 'data'이벤트리스너로 
