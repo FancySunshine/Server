@@ -81,7 +81,7 @@ client.on('message', function (topic, message) { // Node.js에서 수신된 데�
       client.publish('Reservation/list', JSON.stringify(rows));
     });
      ////조도 in/out/avg 데이터 송신
-     connection.query('SELECT * FROM `brightness`', function(err, rows) {
+     connection.query('SELECT * FROM (SELECT * FROM brightness ORDER BY `time` DESC LIMIT 10) AS a ORDER BY `time` ASC', function(err, rows) {
       if(err) throw err;
       console.log(JSON.stringify(rows));
       client.publish('Luxdata/avg2', JSON.stringify(rows));
