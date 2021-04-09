@@ -34,23 +34,20 @@ class AverageLight():
         print(f"linear average --> {self.inside_light}")
         print(f"outline average --> {self.outside_light}")
         while True:
-            time.sleep(2)
-            try:
-                if self.inside_light < self.outside_light:
-                    if self.inside_light == self.hope_list:
-                        print("LED right")
-                    else:
-                        print("LED trun off!")
+            time.sleep(5)
+            if self.inside_light < self.outside_light:
+                if self.inside_light == self.hope_list:
+                    print("LED right")
                 else:
-                    if self.inside_light == self.hope_list:
-                        print("OK")
-                    elif self.hope_list > self.inside_light:
-                        print("curtain up")
-                    else:
-                        print("curtain down")
-            except:
-                print("ㄴㄴ")
+                    print("LED trun off!")
+            else:
+                if self.inside_light == self.hope_list:
+                    print("OK")
+                elif self.hope_list > self.inside_light:
+                    print("curtain up")
+                else:
+                    print("curtain down")
 
 
 if __name__ == "__main__":
-    threading.Timer(5000, AverageLight(sys.argv[1]).control_function()).start()
+    threading.Timer(5000, AverageLight(30).control_function()).start()

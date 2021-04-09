@@ -67,18 +67,10 @@ client.on('connect', function () {  // MQTT 서버에 연결되었을 때
   client.subscribe('Reservation/list');
   client.subscribe('Reservation/check');
   client.subscribe('Database/bright/save');
+  client.subscribe('Auto/control');
 });
 
-// python 스크립트 실행 예정 
-result.stdout.on('data', function(data) { 
-  console.log(data.toString()); }); 
-  // 4. 에러 발생 시, stderr의 'data'이벤트리스너로 
-  //실행결과를 받는다. 
-result.stderr.on('data', function(data) { 
-  console.log(data.toString()); });
-
-
-
+// MQTT Architecture
 client.on('message', function (topic, message) { // Node.js에서 수신된 데이터 처리
   if(topic == 'client/connect'){  // 안드로이드 clinet가 연결되었을 때
     console.log(message.toString());
@@ -152,6 +144,14 @@ client.on('message', function (topic, message) { // Node.js에서 수신된 데�
     });
 
     console.log(chk);
+  }
+  else if(topic == 'Auto/control'){
+    result.stdout.on('data', function(data) { 
+      console.log(data.toString()); }); 
+      // 4. 에러 발생 시, stderr의 'data'이벤트리스너로 
+      //실행결과를 받는다. 
+    result.stderr.on('data', function(data) { 
+      console.log(data.toString()); });
   }
 });
 //data test
