@@ -9,7 +9,7 @@ import threading
 # 5초 마다
 # 5분간 데이터 평균
 def my_data_insert(i):
-    conn = pymysql.connect(host='localhost', user='root', port=3366,
+    conn = pymysql.connect(host='localhost', user='root', port=3306,
                            password='0000', db='curtain', charset='utf8')
     cursor = conn.cursor()
 
@@ -33,19 +33,18 @@ class AverageLight():
     def control_function(self):
         print(f"linear average --> {self.inside_light}")
         print(f"outline average --> {self.outside_light}")
-        while True:
-            if self.inside_light < self.outside_light:
-                if self.inside_light == self.hope_list:
-                    print("LED right")
-                else:
-                    print("LED trun off!")
+        if self.inside_light < self.outside_light:
+            if self.inside_light == self.hope_list:
+                print("LED right")
             else:
-                if self.inside_light == self.hope_list:
-                    print("OK")
-                elif self.hope_list > self.inside_light:
-                    print("curtain up")
-                else:
-                    print("curtain down")
+                print("LED trun off!")
+        else:
+            if self.inside_light == self.hope_list:
+                print("OK")
+            elif self.hope_list > self.inside_light:
+                print("curtain up")
+            else:
+                print("curtain down")
 
 
 if __name__ == "__main__":

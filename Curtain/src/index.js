@@ -67,7 +67,7 @@ client.on('connect', function () {  // MQTT 서버에 연결되었을 때
   client.subscribe('Reservation/check');
   client.subscribe('Database/bright/save');
   client.subscribe('Auto/control');
-  client.subscribe('Luxdata/avg');
+
 });
 
 // MQTT Architecture
@@ -153,13 +153,42 @@ client.on('message', function (topic, message) { // Node.js에서 수신된 데�
     console.log(chk);
   }
   else if(topic == 'Auto/control'){
+    console.log(message.toString());
+
+    // 자동 제어 파이썬 실행
+
+    // 일정 시각마다 실행 스케줄 on
+    if(message.toString() == '1'){
+      let autoSchedule = schedule.scheduleJob('auto', '*/5 * * * * *', function() {
+        const result = spawn('python' , ['main.py']);
+        result.stdout.on('data', function(data) { 
+        console.log(data.toString());
+        }); 
+          // 4. 에러 발생 시, stderr의 'data'이벤트리스너로 
+          //실행결과를 받는다. 
+        result.stderr.on('data', function(data) { 
+          console.log(data.toString()); });
+      });
+    }
+    else{
+      var jobNames = _.keys(schedule.scheduledJobs);
+      for(let name of jobNames){
+        if (name == 'auto'){
+         schedule.cancelJob(name);
+        }
+      }
+    }
+
+    /*
     const result = spawn('python' , ['main.py']);
     result.stdout.on('data', function(data) { 
-      console.log(data.toString()); }); 
+      console.log(data.toString());
+     }); 
       // 4. 에러 발생 시, stderr의 'data'이벤트리스너로 
       //실행결과를 받는다. 
     result.stderr.on('data', function(data) { 
       console.log(data.toString()); });
+      */
   }
 });
 //data test
@@ -217,7 +246,11 @@ function res_checker(){
 
     //모든 예약 취소
     var jobNames = _.keys(schedule.scheduledJobs);
-    for(let name of jobNames) schedule.cancelJob(name);
+    for(let name of jobNames){
+      if (name != 'auto'){
+        schedule.cancelJob(name);
+      }
+    }
 
     console.log("afdafafad" + schedules);
     schedules = [];

@@ -63,16 +63,6 @@
   dependencies:
     "lodash" "^4.0.0"
 
-"amqplib@~0.4.1":
-  "integrity" "sha1-XkoqkUzLMSX5y5H22gfJeqTLE6Y="
-  "resolved" "https://registry.npmjs.org/amqplib/-/amqplib-0.4.2.tgz"
-  "version" "0.4.2"
-  dependencies:
-    "bitsyntax" "~0.0.4"
-    "buffer-more-ints" "0.0.2"
-    "readable-stream" "1.x >=1.1.9"
-    "when" "~3.6.2"
-
 "ansi-regex@^2.0.0":
   "integrity" "sha1-w7M6te42DYbg5ijwRorn7yfWVN8="
   "resolved" "https://registry.npmjs.org/ansi-regex/-/ansi-regex-2.1.1.tgz"
@@ -124,21 +114,10 @@
   "resolved" "https://registry.npmjs.org/ascoltatori/-/ascoltatori-3.2.0.tgz"
   "version" "3.2.0"
   dependencies:
-    "amqp" "~0.2.4"
-    "amqplib" "~0.4.1"
     "debug" "^2.2.0"
-    "eventemitter2" "^2.1.3"
-    "ioredis" "^2.3.0"
-    "kafka-node" "~0.5.8"
-    "kerberos" "~0.0"
-    "mongodb" "^2.1.18"
-    "mqtt" "^1.10.0"
-    "msgpack-lite" "^0.1.20"
     "node-uuid" "~1.4.3"
     "qlobber" "~0.7.0"
-    "qlobber-fsq" "~3.2.4"
     "steed" "^1.1.3"
-    "zmq" "^2.14.0"
   optionalDependencies:
     "amqp" "~0.2.4"
     "amqplib" "~0.4.1"
@@ -235,13 +214,6 @@
   "resolved" "https://registry.npmjs.org/bignumber.js/-/bignumber.js-9.0.0.tgz"
   "version" "9.0.0"
 
-"bitsyntax@~0.0.4":
-  "integrity" "sha1-6xDMb4K4xJDj6FaY8H6D1G4MuoI="
-  "resolved" "https://registry.npmjs.org/bitsyntax/-/bitsyntax-0.0.4.tgz"
-  "version" "0.0.4"
-  dependencies:
-    "buffer-more-ints" "0.0.2"
-
 "bl@^1.0.0", "bl@^1.2.1", "bl@^1.2.2", "bl@~1.2.1":
   "integrity" "sha512-e8tQYnZodmebYDWGH7KMRvtzKXaJHx3BbilrgZCfvyLUYdKpK1t5PSPmpkny/SgiTSCnjfLW7v5rlONXVFkQEA=="
   "resolved" "https://registry.npmjs.org/bl/-/bl-1.2.2.tgz"
@@ -327,11 +299,6 @@
   "integrity" "sha512-MQcXEUbCKtEo7bhqEs6560Hyd4XaovZlO/k9V3hjVUF/zwW7KBVdSK4gIt/bzwS9MbR5qob+F5jusZsb0YQK2A=="
   "resolved" "https://registry.npmjs.org/buffer-from/-/buffer-from-1.1.1.tgz"
   "version" "1.1.1"
-
-"buffer-more-ints@0.0.2":
-  "integrity" "sha1-JrOIXRD6E9t/wBquOquHAZngEkw="
-  "resolved" "https://registry.npmjs.org/buffer-more-ints/-/buffer-more-ints-0.0.2.tgz"
-  "version" "0.0.2"
 
 "bytes@3.1.0":
   "integrity" "sha512-zauLjrfCG+xvoyaqLoV8bLVXXNGC4JqlxFCutSDWA6fJrTo2ZuvLYTqZ7aHBLZSMOopbzwv8f+wZcVzfVTI2Dg=="
@@ -775,7 +742,6 @@
     "estraverse" "^4.2.0"
     "esutils" "^2.0.2"
     "optionator" "^0.8.1"
-    "source-map" "~0.6.1"
   optionalDependencies:
     "source-map" "~0.6.1"
 
@@ -788,7 +754,6 @@
     "estraverse" "^4.2.0"
     "esutils" "^2.0.2"
     "optionator" "^0.8.1"
-    "source-map" "~0.6.1"
   optionalDependencies:
     "source-map" "~0.6.1"
 
@@ -1641,7 +1606,6 @@
   "resolved" "https://registry.npmjs.org/mosca/-/mosca-2.8.3.tgz"
   "version" "2.8.3"
   dependencies:
-    "amqp" "~0.2.4"
     "array-from" "^2.1.1"
     "ascoltatori" "^3.0.0"
     "brfs" "~1.4.2"
@@ -1650,16 +1614,13 @@
     "deepcopy" "^0.6.1"
     "escape-string-regexp" "^1.0.5"
     "extend" "^3.0.0"
-    "ioredis" "^1.15.1"
     "json-buffer" "~2.0.11"
     "jsonschema" "^1.0.3"
     "level-sublevel" "^6.5.2"
-    "leveldown" "~1.4.3"
     "levelup" "^1.3.8"
     "lru-cache" "~4.0.0"
     "memdown" "~1.1.1"
     "minimatch" "~3.0.0"
-    "mongodb" "~2.1.4"
     "moving-average" "0.1.1"
     "mqtt" "^1.6.3"
     "mqtt-connection" "^2.1.1"
@@ -2296,16 +2257,6 @@
     "isarray" "0.0.1"
     "string_decoder" "~0.10.x"
 
-"readable-stream@1.x >=1.1.9":
-  "integrity" "sha1-fPTFTvZI44EwhMY23SB54WbAgdk="
-  "resolved" "https://registry.npmjs.org/readable-stream/-/readable-stream-1.1.14.tgz"
-  "version" "1.1.14"
-  dependencies:
-    "core-util-is" "~1.0.0"
-    "inherits" "~2.0.1"
-    "isarray" "0.0.1"
-    "string_decoder" "~0.10.x"
-
 "redis-commands@^1.2.0":
   "integrity" "sha512-6KxamqpZ468MeQC3bkWmCB1fp56XL64D4Kf0zJSwDZbVLLm7KFkoIcHrgRvQ+sk8dnhySs7+yBg94yIkAK7aJg=="
   "resolved" "https://registry.npmjs.org/redis-commands/-/redis-commands-1.5.0.tgz"
@@ -2583,7 +2534,6 @@
     "async-cache" "~1.1.0"
     "bl" "~1.2.1"
     "fd" "~0.0.2"
-    "graceful-fs" "~4.1.11"
     "mime" "~1.4.1"
     "negotiator" "~0.6.1"
   optionalDependencies:
@@ -2892,11 +2842,6 @@
     "safe-buffer" "^5.1.2"
     "ws" "^3.2.0"
     "xtend" "^4.0.0"
-
-"when@~3.6.2":
-  "integrity" "sha1-RztRfsFZ4rhQBUl6E5g/CVQS404="
-  "resolved" "https://registry.npmjs.org/when/-/when-3.6.4.tgz"
-  "version" "3.6.4"
 
 "which@1":
   "integrity" "sha512-HxJdYWq1MTIQbJ3nw0cqssHoTNU267KlrDuGZ1WYlxDStUtKUhOaJmh112/TZmHxxUfuJqPXSOm7tDyas0OSIQ=="
