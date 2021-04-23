@@ -156,7 +156,7 @@ aedes.subscribe('Database/bright/save', function (packet, cb) {
 	console.log(chk);
 });
 
-aedes.subscribe('Auto/control', function (packet, cb) {
+aedes.subscribe('auto/ctr', function (packet, cb) {
 	console.log(packet.payload.toString());
 	// 자동 제어 파이썬 실행
 
@@ -167,7 +167,7 @@ aedes.subscribe('Auto/control', function (packet, cb) {
 			result.stdout.on('data', function (data) {
 				console.log(data.toString());
 				aedes.publish({
-					topic: "Auto/result",
+					topic: "auto/result",
 					payload: data.toString()
 				});
 			});
