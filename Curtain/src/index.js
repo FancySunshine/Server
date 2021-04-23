@@ -20,7 +20,9 @@ var res_StartHours = [];
 var res_StartMinutes = [];
 var res_Days = [];
 var res_Controls = [];
-var res = [res_StartHours, res_StartMinutes, res_Days, res_Controls];
+var res_LedColor = [];
+var res_LedBright = [];
+var res = [res_StartHours, res_StartMinutes, res_Days, res_Controls, res_LedColor, res_LedBright];
 var schedules = [];
 
 var port = 1883;
@@ -87,10 +89,10 @@ aedes.subscribe('rsv/addreq', function (packet, cb) {
 	console.log(message.toString());
 	*/
 	// DB에 데이터 삽입 
-	connection.query('INSERT INTO `control`(`Name`, `StartTime`, `dayofweek`, `ctr`, `Memo`) VALUES("'
-		+ data[0] + '", "' + data[1] + '", "' + data[2] + '", ' + data[3] + ', "' + data[4] + '") ON DUPLICATE KEY '
-		+ 'UPDATE `StartTime` = "' + data[1] + '", `dayofweek` = "' + data[2] + '", `ctr` = "' + data[3] + '", `Memo` = "'
-		+ data[4] + '";', function (err, rows) {
+	connection.query('INSERT INTO `control`(`Name`, `StartTime`, `dayofweek`, `ctr`, `led`, `Memo`) VALUES("'
+		+ data[0] + '", "' + data[1] + '", "' + data[2] + '", ' + data[3] + ', "' + data[4] + '", "' + data[5] + '") ON DUPLICATE KEY '
+		+ 'UPDATE `StartTime` = "' + data[1] + '", `dayofweek` = "' + data[2] + '", `ctr` = "' + data[3] + '", `led` = "' + data[4] + '", `Memo` = "'
+		+ data[5] + '";', function (err, rows) {
 			if (err) {
 				aedes.publish({
 					topic: 'rsv/addres',
