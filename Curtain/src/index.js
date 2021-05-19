@@ -25,6 +25,8 @@ var res_LedBright = [];
 var res = [res_StartHours, res_StartMinutes, res_Days, res_Controls, res_LedColor, res_LedBright];
 var schedules = [];
 
+var auto_step = '0';
+
 var port = 1883;
 
 server.listen(port, function () {
@@ -46,14 +48,7 @@ aedes.on('clientDisconnect', (client) => {
 	log(message)
 }
 )
-aedes.subscribe('main', function (packet, cb) {
-	console.log('Published', packet.payload.toString());
 
-	aedes.publish({
-		topic: 'fromServer',
-		payload: 'Thank you!',
-	});
-});
 
 aedes.subscribe('rsv/req', function (packet, cb) {
 	console.log(packet.payload.toString());
@@ -74,6 +69,10 @@ aedes.subscribe('rsv/req', function (packet, cb) {
 			payload: JSON.stringify(rows)
 		});
 	});
+	aedes.publish({
+			topic: 'auto/step',
+			payload: auto_step
+		});
 });
 
 aedes.subscribe('rsv/addreq', function (packet, cb) {
@@ -133,6 +132,12 @@ aedes.subscribe('rsv/delreq', function (packet, cb) {
 aedes.subscribe('ctn/step', function (packet, cb) {
 	// 안드로이드 앱에서 커튼 단계 제어 버튼을 눌렀을 때
 	console.log(packet.payload.toString());
+	var jobNames = _.keys(schedule.scheduledJobs);
+	for (let name of jobNames) {
+		if (name == 'auto') {
+			schedule.cancelJob(name);
+		}
+	}
 });
 
 aedes.subscribe('rsv/check', function (packet, cb) {
@@ -161,7 +166,14 @@ aedes.subscribe('Database/bright/save', function (packet, cb) {
 aedes.subscribe('auto/ctr', function (packet, cb) {
 	console.log(packet.payload.toString());
 	// 자동 제어 파이썬 실행
+	auto_step = packet.payload.toString();
+	var jobNames = _.keys(schedule.scheduledJobs);
+	for (let name of jobNames) {
+		if (name == 'auto') {
+			schedule.cancelJob(name);
+		}
 
+	}
 	// 일정 시각마다 실행 스케줄 on
 	if (packet.payload.toString() != '0') {
 		let autoSchedule = schedule.scheduleJob('auto', '*/5 * * * * *', function () {
@@ -180,14 +192,13 @@ aedes.subscribe('auto/ctr', function (packet, cb) {
 			});
 		});
 	}
-	else {
-		var jobNames = _.keys(schedule.scheduledJobs);
-		for (let name of jobNames) {
-			if (name == 'auto') {
-				schedule.cancelJob(name);
-			}
-		}
-	}
+
+aedes.subscribe('person', function (packet, cb) {
+	// 안드로이드 앱에서 커튼 단계 제어 버튼을 눌렀을 때
+	console.log(packet.payload.toString());
+	
+});
+
 
 	/*
 	const result = spawn('python' , ['main.py']);
@@ -200,6 +211,7 @@ aedes.subscribe('auto/ctr', function (packet, cb) {
 	  console.log(data.toString()); });
 	  */
 });
+
 
 // MOSCA CODE
 /*
@@ -382,14 +394,16 @@ console.log(data.toString());
 */
 
 function res_checker() {
-	connection.query('SELECT `StartTime`, `ctr`, `dayofweek` FROM `control` WHERE chk_state = 1', function (err, rows) { //WHERE `chk_state` = 1
+	connection.query('SELECT `StartTime`, `ctr`, `dayofweek`, `led` FROM `control` WHERE chk_state = 1', function (err, rows) { //WHERE `chk_state` = 1
 		if (err) throw err;
 		// 예약 리스트 비우기
 		res_StartHours = [];
 		res_StartMinutes = [];
 		res_Days = [];
 		res_Controls = [];
-		res = [res_StartHours, res_StartMinutes, res_Days, res_Controls];
+		res_LedColor = [];
+		res_LedBright = [];
+		res = [res_StartHours, res_StartMinutes, res_Days, res_Controls, res_LedColor, res_LedBright];
 
 		//모든 예약 취소
 		var jobNames = _.keys(schedule.scheduledJobs);
@@ -404,11 +418,18 @@ function res_checker() {
 		var data = JSON.parse(JSON.stringify(rows));
 		console.log(JSON.stringify(rows));
 		for (var i = 0; i < data.length; i++) {
-			res_StartHours.push(data[i].StartTime.split(':')[0]);
-			res_StartMinutes.push(data[i].StartTime.split(':')[1]);
+
+			time = data[i].StartTime.split(':');
+			res_StartHours.push(time[0]);
+			res_StartMinutes.push(time[1]);
+
 			//res_StartTimes[i] = data[i].StartTime;
 			res_Days.push(day_parser(data[i].dayofweek));
 			res_Controls.push(data[i].ctr);
+
+			led = data[i].led.split(',');
+			res_LedColor.push(led[1]);
+			res_LedBright.push(led[0]);
 
 
 			var rule = new schedule.RecurrenceRule();
@@ -417,10 +438,23 @@ function res_checker() {
 			rule.minute = Number(res_StartMinutes[i]);
 
 			let ctr = res_Controls[i];
+			let bright = res_LedBright[i];
+			let color = res_LedColor[i];
 
 			console.log(res_Days[i].split(', ').map(Number));
 			schedules.push(schedule.scheduleJob(String(i), rule, function () { //시간마다
-				client.publish('asdft', ctr.toString());
+				aedes.publish({
+				topic: 'asdft',
+				payload: ctr.toString()
+				});
+				console.log(ctr.toString());
+				if (bright != '-1') {
+					aedes.publish({
+					topic: 'ctrled',
+					payload: (bright + color)
+					});
+					console.log((bright + color));
+				}
 			}));
 
 		}
