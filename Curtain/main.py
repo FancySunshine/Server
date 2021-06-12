@@ -28,7 +28,8 @@ outside = [data[2] for data in res]
 
 in_average = np.array(inside).mean()
 out_average = np.array(outside).mean()
-
+print('in_average from DB : ', in_average)
+print('out_average from DB : ', out_average )
 lux_standard = [0, 100, 200, 300, 400, 500]
 
 class AverageLight():
