@@ -172,7 +172,6 @@ aedes.subscribe('Database/bright/save', function (packet, cb) {
 		console.log('Success!');
 	});
 
-	console.log(chk);
 });
 
 // 자동 제어 파이썬 실행

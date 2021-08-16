@@ -36,7 +36,7 @@ class AverageLight():
     def __init__(self):
         self.inside_light = in_average
         self.outside_light = out_average
-        self.hope_list = lux_standard[int(sys.argv[1])]
+        self.hope_light = lux_standard[int(sys.argv[1])]
     
 
     def control_function(self):
@@ -44,17 +44,17 @@ class AverageLight():
         print(f"outline average --> {self.outside_light}")
 
         if self.inside_light < self.outside_light:
-            if self.inside_light == self.hope_list:
-                print("LED|0.999")
+            if self.inside_light == self.hope_light:
+                print("Curtain|0.999")
             else:
-                print("LED trun off!")
+                print("Curtain| trun off!")
         else:
-            if self.inside_light == self.hope_list:
+            if self.inside_light == self.hope_light:
                 print("OK")
-            elif self.hope_list > self.inside_light:
-                print("curtain up")
+            elif self.hope_light > self.inside_light:
+                print("LED up")
             else:
-                print("curtain down")
+                print("LED down")
 
 
 AverageLight().control_function()
