@@ -312,7 +312,7 @@ function res_checker() {
 
 	});
 
-}
+}ss
 
 function day_parser(sql_day) {
 	var day = ['0', '1', '2', '3', '4', '5', '6'];
