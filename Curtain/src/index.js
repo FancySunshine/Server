@@ -60,7 +60,18 @@ var luxnow = schedule.scheduleJob('luxnow', '*/5 * * * * *', function () { //시
 			payload: JSON.stringify(rows)
 		});
 	});
+	console.log("1234567890");
+});
 
+var luxnow1 = schedule.scheduleJob('graph', '*/5 * * * * *', function () { //3시간마다
+	connection.query('SELECT DATE_FORMAT(`time`, "%Y-%m-%d %H:00:00") AS `time`, AVG(`in`) AS `in`, AVG(`out`) as `out` FROM (SELECT * FROM curtain.brightness WHERE MOD(CAST(HOUR(`time`) AS UNSIGNED), 3) = 0 ORDER BY `time` desc limit 8) AS abcd GROUP BY DATE(`time`), HOUR(`time`) ORDER BY `time` ASC;', function (err, rows) {	
+		if (err) throw err;
+		aedes.publish({
+			topic: 'lux/graph1',
+			payload: JSON.stringify(rows)
+		});
+	});
+console.log("abcdefg");
 });
 
 
@@ -75,13 +86,26 @@ aedes.subscribe('rsv/req', function (packet, cb) {
 			payload: JSON.stringify(rows)
 		});
 	});
+	
 	connection.query('SELECT * FROM (SELECT * FROM brightness ORDER BY `time` DESC LIMIT 10) AS a ORDER BY `time` ASC', function (err, rows) {
 		if (err) throw err;
+			aedes.publish({
+				topic: 'lux/graph',
+				payload: JSON.stringify(rows)
+			});
+		});
+	
+	connection.query('SELECT DATE_FORMAT(`time`, "%Y-%m-%d %H:00:00") AS `time`, AVG(`in`) AS `in`, AVG(`out`) as `out` FROM (SELECT * FROM curtain.brightness WHERE MOD(CAST(HOUR(`time`) AS UNSIGNED), 3) = 0 ORDER BY `time` desc limit 8) AS abcd GROUP BY DATE(`time`), HOUR(`time`) ORDER BY `time` ASC;', function (err, rows) {
+	if (err) throw err;
 		aedes.publish({
-			topic: 'lux/graph',
+			topic: 'lux/graph1',
 			payload: JSON.stringify(rows)
 		});
 	});
+
+	
+
+
 	aedes.publish({
 			topic: 'auto/step',
 			payload: auto_step
@@ -230,7 +254,7 @@ function res_checker() {
 		//모든 예약 취소
 		var jobNames = _.keys(schedule.scheduledJobs);
 		for (let name of jobNames) {
-			if (name == 'auto' || name == 'luxnow') {
+			if (name == 'auto' || name == 'luxnow' || name == 'graph') {
 				continue;
 			}
 			else {
