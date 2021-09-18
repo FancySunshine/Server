@@ -118,8 +118,8 @@ aedes.subscribe('rsv/addreq', function (packet, cb) {
 	var data = packet.payload.toString().split('|');
 	console.log(data);
 	// DB에 데이터 삽입 
-	connection.query('INSERT INTO `control`(`Name`, `StartTime`, `dayofweek`, `ctr`, `led`, `Memo`) VALUES("'
-		+ data[0] + '", "' + data[1] + '", "' + data[2] + '", ' + data[3] + ', "' + data[4] + '", "' + data[5] + '") ON DUPLICATE KEY '
+	connection.query('INSERT INTO `control`(`Name`, `StartTime`, `dayofweek`, `ctr`, `led`, `Memo`, `chk_state`) VALUES("'
+		+ data[0] + '", "' + data[1] + '", "' + data[2] + '", ' + data[3] + ', "' + data[4] + '", "' + data[5] + '", "' + 1 + '") ON DUPLICATE KEY '
 		+ 'UPDATE `StartTime` = "' + data[1] + '", `dayofweek` = "' + data[2] + '", `ctr` = "' + data[3] + '", `led` = "' + data[4] + '", `Memo` = "'
 		+ data[5] + '";', function (err, rows) {
 			if (err) {
@@ -299,9 +299,13 @@ function res_checker() {
 				console.log(ctr.toString());
 				if (bright != '-1') {
 					aedes.publish({
-					topic: 'ctrled',
-					payload: (bright + color)
+					topic: 'led/bright',
+					payload: bright
 					});
+					aedes.publish({
+						topic: 'led/color',
+						payload: color
+						});
 					console.log((bright + color));
 				}
 			}));
