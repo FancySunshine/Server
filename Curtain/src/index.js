@@ -53,15 +53,15 @@ aedes.on('clientDisconnect', (client) => {
 
 // 5초마다 현재 방안 조도 송신
 var luxnow = schedule.scheduleJob('luxnow', '*/5 * * * * *', function () { //시간마다
-	connection.query('SELECT * FROM (SELECT * FROM brightness ORDER BY `time` DESC LIMIT 10) AS a ORDER BY `time` ASC', function (err, rows) {
-		if (err) throw err;
-		aedes.publish({
-			topic: 'lux/graph',
-			payload: JSON.stringify(rows)
-		});
+	connection.query('SELECT `time`, CAST(`in` AS signed integer) as `in`,`out` FROM (SELECT * FROM curtain.brightness ORDER BY `time` DESC LIMIT 10) AS a ORDER BY `time` ASC;', function (err, rows) {
+	   if (err) throw err;
+	   aedes.publish({
+		  topic: 'lux/graph',
+		  payload: JSON.stringify(rows)
+	   });
 	});
-	console.log("1234567890");
-});
+	console.log("every 5s in_lux");
+ });
 
 var luxnow1 = schedule.scheduleJob('graph', '*/5 * * * * *', function () { //3시간마다
 	connection.query('SELECT DATE_FORMAT(`time`, "%Y-%m-%d %H:00:00") AS `time`, AVG(`in`) AS `in`, AVG(`out`) as `out` FROM (SELECT * FROM curtain.brightness WHERE MOD(CAST(HOUR(`time`) AS UNSIGNED), 3) = 0 ORDER BY `time` desc limit 8) AS abcd GROUP BY DATE(`time`), HOUR(`time`) ORDER BY `time` ASC;', function (err, rows) {	
@@ -71,7 +71,7 @@ var luxnow1 = schedule.scheduleJob('graph', '*/5 * * * * *', function () { //3�
 			payload: JSON.stringify(rows)
 		});
 	});
-console.log("abcdefg");
+console.log("every 5s graph");
 });
 
 
