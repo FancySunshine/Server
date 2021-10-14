@@ -25,10 +25,11 @@ var res_LedBright = [];
 var res = [res_StartHours, res_StartMinutes, res_Days, res_Controls, res_LedColor, res_LedBright];
 var schedules = [];
 
+var auto_mode = false;
 var auto_step = '0';
 var personIn = false;
 var curtain_step = 0;
-var led_bright = 0;
+var led_bright = 100;
 
 // MQTT Broker Server(Aedes)
 var port = 1883;
@@ -167,9 +168,11 @@ aedes.subscribe('ctn/step', function (packet, cb) {
 	curtain_step = Number(packet.payload.toString());
 	console.log(packet.payload.toString());
 	var jobNames = _.keys(schedule.scheduledJobs);
-	for (let name of jobNames) {
-		if (name == 'auto') {
-			schedule.cancelJob(name);
+	if (!auto_mode) {
+		for (let name of jobNames) {
+			if (name == 'auto') {
+				schedule.cancelJob(name);
+			}
 		}
 	}
 });
@@ -223,6 +226,12 @@ aedes.subscribe('auto/result', function (packet, cb) {
 aedes.subscribe('auto/ctr', function (packet, cb) {
 	console.log(packet.payload.toString());
 	auto_step = packet.payload.toString();
+	if (auto_step == '0') {
+		auto_mode = false;
+	}
+	else {
+		auto_mode = true;
+	}
 	var jobNames = _.keys(schedule.scheduledJobs);
 	for (let name of jobNames) {
 		if (name == 'auto') {
@@ -231,38 +240,76 @@ aedes.subscribe('auto/ctr', function (packet, cb) {
 
 	}
 	// 일정 시각마다 실행 스케줄 on
-	if (packet.payload.toString() != '0') {
+	if (auto_step != '0') {
 		let autoSchedule = schedule.scheduleJob('auto', '*/5 * * * * *', function () {
-			const result = spawn('python', ['main.py', packet.payload.toString(), curtain_step, led_bright]);
-			result.stdout.on('data', function (data) {
-				/*
-				var json = JSON.parse(data.toString());
-				console.log(json.curtain);
-				curtain_step = json.curtain;
-				aedes.publish({
-					topic: "ctn/step",
-					payload: curtain_step.toString()
-				});
-				*/
+			console.log(personIn);
+			if (personIn) {
+				const result = spawn('python', ['main.py', auto_step, curtain_step, led_bright]);
+				result.stdout.on('data', function (data) {
 				
-				console.log(data.toString());
-				aedes.publish({
-					topic: "auto/result",
-					payload: data.toString()
-				});
+					var json = JSON.parse(data.toString());
+					console.log(json);
+					if (json.curtain) {
+						curtain_step = json.curtain;
+						aedes.publish({
+							topic: "ctn/step",
+							payload: curtain_step.toString()
+						});
+					};
+					if (json.led) {
+						led_bright = json.led;
+						aedes.publish({
+							topic: "led/bright",
+							payload: (led_bright * 0.01).toString()
+						});
+					}
 				
-			});
-			// 4. 에러 발생 시, stderr의 'data'이벤트리스너로 
-			//실행결과를 받는다. 
-			result.stderr.on('data', function (data) {
-				console.log(data.toString());
-			});
+				
+				
+					/*
+					console.log(data.toString());
+					var json = JSON.parse(data.toString());
+					if (json.curtain) {
+						if (json.curtain == "up") {
+							curtain_step = curtain_step + 1;
+						}
+						else{
+							curtain_step = curtain_step - 1;
+						}
+					};
+					if (json.led) {
+						if (json.led == "up") {
+							led_bright = led_bright + 5;
+						}
+						else {
+							led_bright = led_bright - 5;
+						 }
+					}
+	
+					aedes.publish({
+						topic: "auto/result",
+						payload: data.toString()
+					});*/
+				
+				});
+				// 4. 에러 발생 시, stderr의 'data'이벤트리스너로 
+				//실행결과를 받는다. 
+				result.stderr.on('data', function (data) {
+					console.log(data.toString());
+				});
+			}
 		});
 	}
 
 });
-aedes.subscribe('auto/person', function (packet, cb) {
+aedes.subscribe('person', function (packet, cb) {
 	// 안드로이드 앱에서 커튼 단계 제어 버튼을 눌렀을 때
+	if (packet.payload.toString() == "in") {
+		personIn = true;
+	}
+	else {
+		personIn = false;
+	}
 	console.log(packet.payload.toString());
 	
 });
