@@ -27,6 +27,8 @@ var schedules = [];
 
 var auto_step = '0';
 var personIn = false;
+var curtain_step = 0;
+var led_bright = 0;
 
 // MQTT Broker Server(Aedes)
 var port = 1883;
@@ -64,7 +66,7 @@ var luxnow = schedule.scheduleJob('luxnow', '*/5 * * * * *', function () { //시
  });
 
 var luxnow1 = schedule.scheduleJob('graph', '*/5 * * * * *', function () { //3시간마다
-	connection.query('SELECT DATE_FORMAT(`time`, "%Y-%m-%d %H:00:00") AS `time`, AVG(`in`) AS `in`, AVG(`out`) as `out` FROM (SELECT * FROM curtain.brightness WHERE MOD(CAST(HOUR(`time`) AS UNSIGNED), 3) = 0 ORDER BY `time` desc limit 8) AS abcd GROUP BY DATE(`time`), HOUR(`time`) ORDER BY `time` ASC;', function (err, rows) {	
+	connection.query('SELECT * FROM (SELECT `time` AS t, DATE_FORMAT(`time`, "%H시") AS `time`, AVG(`in`) AS `in`, AVG(`out`) AS `out` FROM brightness GROUP BY DATE(`t`), HOUR(`t`) ORDER BY `t` DESC LIMIT 12) AS a ORDER BY a.`t`;', function (err, rows) {	
 		if (err) throw err;
 		aedes.publish({
 			topic: 'lux/graph1',
@@ -162,6 +164,7 @@ aedes.subscribe('rsv/delreq', function (packet, cb) {
 
 aedes.subscribe('ctn/step', function (packet, cb) {
 	// 안드로이드 앱에서 커튼 단계 제어 버튼을 눌렀을 때
+	curtain_step = Number(packet.payload.toString());
 	console.log(packet.payload.toString());
 	var jobNames = _.keys(schedule.scheduledJobs);
 	for (let name of jobNames) {
@@ -173,6 +176,12 @@ aedes.subscribe('ctn/step', function (packet, cb) {
 aedes.subscribe('ctrled', function (packet, cb) {
 	// led 테스트
 	console.log(packet.payload.toString());
+	
+});
+
+aedes.subscribe('led/bright', function (packet, cb) {
+	// led 테스트
+	led_bright = Number(packet.payload.toString()) * 100;
 	
 });
 
@@ -197,7 +206,19 @@ aedes.subscribe('Database/bright/save', function (packet, cb) {
 	});
 
 });
+/*
+aedes.subscribe('auto/result', function (packet, cb) {
+	var result = JSON.parse(packet.payload.toString());
+	if (result["curtain"]) {
+		curtain_step = Number(result["curtain"]);
+		aedes.publish({
+				topic: "ctn/step",
+				payload: curtain_step.toString()
+			});
+	}
 
+});
+*/
 // 자동 제어 파이썬 실행
 aedes.subscribe('auto/ctr', function (packet, cb) {
 	console.log(packet.payload.toString());
@@ -212,13 +233,24 @@ aedes.subscribe('auto/ctr', function (packet, cb) {
 	// 일정 시각마다 실행 스케줄 on
 	if (packet.payload.toString() != '0') {
 		let autoSchedule = schedule.scheduleJob('auto', '*/5 * * * * *', function () {
-			const result = spawn('python', ['main.py', packet.payload.toString()]);
+			const result = spawn('python', ['main.py', packet.payload.toString(), curtain_step, led_bright]);
 			result.stdout.on('data', function (data) {
+				/*
+				var json = JSON.parse(data.toString());
+				console.log(json.curtain);
+				curtain_step = json.curtain;
+				aedes.publish({
+					topic: "ctn/step",
+					payload: curtain_step.toString()
+				});
+				*/
+				
 				console.log(data.toString());
 				aedes.publish({
 					topic: "auto/result",
 					payload: data.toString()
 				});
+				
 			});
 			// 4. 에러 발생 시, stderr의 'data'이벤트리스너로 
 			//실행결과를 받는다. 
