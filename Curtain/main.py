@@ -12,7 +12,7 @@ import numpy as np
 # 5분간 데이터 평균
 
 conn = pymysql.connect(host='localhost', user='root', port=3306,
-                       password='0000', db='curtain', charset='utf8')
+                       password='guseh123', db='curtain', charset='utf8')
 cursor = conn.cursor()
 
 #sql = "SELECT * FROM brightness order by `time` desc limit 60"
@@ -37,16 +37,14 @@ class AverageLight():
     def __init__(self):
         self.inside_light = inside
         self.outside_light = outside
-        #self.hope_light = lux_standard[int(sys.argv[1])]
+        self.hope_light = lux_standard[int(sys.argv[1])]
         #self.curtain_step = int(sys.argv[2])
         #self.led_bright = int(sys.argv[3])
 
     def control_function(self):
         #print(f"linear average --> {self.inside_light}")
         #print(f"outline average --> {self.outside_light}")
-        self.inside_light = 200
-        self.outside_light = 300
-        self.hope_light = 120
+
         self.curtain_step = int(float(sys.argv[2]))
         self.led_bright = int(float(sys.argv[3]))
 
@@ -56,8 +54,8 @@ class AverageLight():
         if self.inside_light < self.outside_light:
             if min_light <= self.inside_light < max_light:
                 # print("Curtain|0.999")
-                print("OK")
-            elif min_light >= self.inside_light:
+                print(json.dumps({"result": "OK"}, indent=4))
+            elif min_light > self.inside_light:
                 if self.curtain_step != 0:
                     #up_curtain = {'curtain': 'up'}
                     up_curtain = {'curtain': self.curtain_step - 1}
@@ -67,6 +65,8 @@ class AverageLight():
                     if self.led_bright <= 95:
                         #print(json.dumps({'led': 'up'}, indent=4))
                         print(json.dumps({'led': self.led_bright + 5}, indent=4))
+                    else:
+                        print(json.dumps({"result": "None"}, indent=4))
 
             elif max_light <= self.inside_light:
                 if self.curtain_step < 4:
@@ -79,12 +79,14 @@ class AverageLight():
                     if self.led_bright >= 5:
                         #print(json.dumps({'led': 'down'}, indent=4))
                         print(json.dumps({'led': self.led_bright - 5}, indent=4))
+                    else:
+                        print(json.dumps({"result": "None"}, indent=4))
 
         else:
             if min_light <= self.inside_light < max_light:
-                print("OK")
+                print(json.dumps({"result": "OK"}, indent=4))
 
-            elif min_light >= self.inside_light:
+            elif min_light > self.inside_light:
                 if self.led_bright <= 95:
                     #down_led = {'led': 'up'}
                     down_led = {'led': self.led_bright + 5}
@@ -94,6 +96,8 @@ class AverageLight():
                     if self.curtain_step != 0:
                         #print(json.dumps({'curtain': 'up'}, indent=4))
                         print(json.dumps({'curtain': self.curtain_step - 1}, indent=4))
+                    else:
+                        print(json.dumps({"result": "None"}, indent=4))
 
             elif max_light <= self.inside_light:
                 if self.led_bright >= 5:
@@ -105,5 +109,7 @@ class AverageLight():
                     if self.curtain_step != 4:
                         #print(json.dumps({'curtain': 'down'}, indent=4))
                         print(json.dumps({'curtain': self.curtain_step + 1}, indent=4))
+                    else:
+                        print(json.dumps({"result": "None"}, indent=4))
 
 AverageLight().control_function()

@@ -27,7 +27,7 @@ var schedules = [];
 
 var auto_mode = false;
 var auto_step = '0';
-var personIn = false;
+var personIn = 0;
 var curtain_step = 0;
 var led_bright = 100;
 
@@ -56,7 +56,7 @@ aedes.on('clientDisconnect', (client) => {
 
 // 5초마다 현재 방안 조도 송신
 var luxnow = schedule.scheduleJob('luxnow', '*/5 * * * * *', function () { //시간마다
-	connection.query('SELECT `time`, CAST(`in` AS signed integer) as `in`,`out` FROM (SELECT * FROM curtain.brightness ORDER BY `time` DESC LIMIT 10) AS a ORDER BY `time` ASC;', function (err, rows) {
+	connection.query('SELECT `in` from brightness order by `time` desc limit 1;', function (err, rows) {
 	   if (err) throw err;
 	   aedes.publish({
 		  topic: 'lux/graph',
@@ -241,9 +241,9 @@ aedes.subscribe('auto/ctr', function (packet, cb) {
 	}
 	// 일정 시각마다 실행 스케줄 on
 	if (auto_step != '0') {
-		let autoSchedule = schedule.scheduleJob('auto', '*/5 * * * * *', function () {
+		let autoSchedule = schedule.scheduleJob('auto', '*/30 * * * * *', function () {
 			console.log(personIn);
-			if (personIn) {
+			if (personIn > 0) {
 				const result = spawn('python', ['main.py', auto_step, curtain_step, led_bright]);
 				result.stdout.on('data', function (data) {
 				
@@ -305,10 +305,10 @@ aedes.subscribe('auto/ctr', function (packet, cb) {
 aedes.subscribe('person', function (packet, cb) {
 	// 안드로이드 앱에서 커튼 단계 제어 버튼을 눌렀을 때
 	if (packet.payload.toString() == "in") {
-		personIn = true;
+		personIn = personIn + 1;
 	}
 	else {
-		personIn = false;
+		personIn = personIn - 1;
 	}
 	console.log(packet.payload.toString());
 	
@@ -381,6 +381,9 @@ function res_checker() {
 					topic: 'led/bright',
 					payload: bright
 					});
+
+					color = hexToRgb(color);
+
 					aedes.publish({
 						topic: 'led/color',
 						payload: color
@@ -409,7 +412,24 @@ function day_parser(sql_day) {
 
 	return str;
 }
-
+function hexToRgb ( hexType ){ 
+    /* 맨 앞의 "#" 기호를 삭제하기. */ 
+    var hex = hexType.trim().replace( "#", "" ); 
+    
+    /* rgb로 각각 분리해서 배열에 담기. */ 
+    var rgb = ( 3 === hex.length ) ? 
+		hex.match( /[a-f\d]/gi ) : hex.match( /[a-f\d]{2}/gi );     
+    
+    rgb.forEach(function (str, x, arr){     
+        /* rgb 각각의 헥사값이 한자리일 경우, 두자리로 변경하기. */ 
+        if ( str.length == 1 ) str = str + str; 
+        
+        /* 10진수로 변환하기. */ 
+        arr[ x ] = parseInt( str, 16 ); 
+    }); 
+    
+    return rgb.join("|"); 
+} 
 
 
 
